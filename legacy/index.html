@@ -1,0 +1,2611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Swami Abhyasika — Student Management System</title>
+  <!-- PWA -->
+  <meta name="application-name" content="Swami Abhyasika">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Swami SMS">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#080a10">
+  <meta name="description" content="Student Management System for Swami Abhyasika">
+  <link rel="manifest" id="pwa-manifest">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      color-scheme: dark;
+      --bg:      #080a10;
+      --bg2:     #0f1118;
+      --bg3:     #161922;
+      --bg4:     #1e222e;
+      --bg5:     #252a38;
+      --border:  rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.11);
+      --text:    #eceef6;
+      --text2:   #8892aa;
+      --text3:   #4e5670;
+      --accent:  #7c6fff;
+      --accent2: #a59bff;
+      --accent-bg: rgba(124,111,255,0.12);
+      --accent-glow: rgba(124,111,255,0.22);
+      --green:   #22d47a;
+      --green-bg:rgba(34,212,122,0.10);
+      --amber:   #f59e0b;
+      --amber-bg:rgba(245,158,11,0.10);
+      --red:     #f05252;
+      --red-bg:  rgba(240,82,82,0.10);
+      --blue:    #38bdf8;
+      --blue-bg: rgba(56,189,248,0.10);
+      --sidebar-w: 248px;
+      --radius:    14px;
+      --radius-sm: 9px;
+      --radius-xs: 6px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-md: 0 6px 24px rgba(0,0,0,0.4);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.5);
+    }
+
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg:      #f2eee4;
+      --bg2:     #e8e2d4;
+      --bg3:     #ddd5c2;
+      --bg4:     #d0c8b0;
+      --bg5:     #c4bb9e;
+      --border:  rgba(100,80,40,0.13);
+      --border2: rgba(100,80,40,0.22);
+      --text:    #2a1f0e;
+      --text2:   #6b5c40;
+      --text3:   #8b7a58;
+      --accent:  #6c52c8;
+      --accent2: #8064d4;
+      --accent-bg: rgba(108,82,200,0.10);
+      --accent-glow: rgba(108,82,200,0.18);
+      --green:   #2d7a45;
+      --green-bg:rgba(45,122,69,0.10);
+      --amber:   #b45309;
+      --amber-bg:rgba(180,83,9,0.10);
+      --red:     #b91c1c;
+      --red-bg:  rgba(185,28,28,0.09);
+      --blue:    #0369a1;
+      --blue-bg: rgba(3,105,161,0.09);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-md: 0 6px 20px rgba(0,0,0,0.12);
+      --shadow-lg: 0 16px 40px rgba(0,0,0,0.16);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    * { scrollbar-color: var(--bg5) var(--bg2); scrollbar-width: thin; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--bg5); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+    h1, h2, h3, h4 { font-family: 'Syne', sans-serif; letter-spacing: -0.02em; }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0;
+      height: 100vh; z-index: 100;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+    }
+
+    .sidebar-logo {
+      padding: 22px 18px 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 100%);
+    }
+
+    .logo-mark { display: flex; align-items: center; gap: 11px; }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px var(--accent-glow);
+      flex-shrink: 0;
+    }
+    .logo-icon svg { width: 18px; height: 18px; fill: white; }
+    .logo-icon-img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+
+    .logo-text { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+
+    .nav { flex: 1; padding: 14px 10px; overflow-y: auto; }
+
+    .nav-section-label {
+      font-size: 9.5px; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.12em;
+      padding: 10px 10px 5px; font-weight: 600;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: var(--radius-sm);
+      cursor: pointer; color: var(--text2);
+      font-size: 13px; font-weight: 500;
+      margin-bottom: 2px; transition: all 0.16s;
+      position: relative;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--text); transform: translateX(2px); }
+    .nav-item.active {
+      background: var(--accent-bg);
+      color: var(--accent2);
+      box-shadow: inset 3px 0 0 var(--accent), 0 2px 8px var(--accent-glow);
+    }
+    .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red); color: white;
+      font-size: 10px; border-radius: 10px;
+      padding: 1px 7px; font-weight: 600;
+      box-shadow: 0 2px 6px rgba(240,82,82,0.4);
+    }
+
+    .sidebar-footer {
+      padding: 14px 16px; border-top: 1px solid var(--border);
+      background: linear-gradient(0deg, var(--bg3) 0%, var(--bg2) 100%);
+    }
+    .admin-card { display: flex; align-items: center; gap: 10px; }
+    .admin-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; color: white;
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+    .admin-name { font-size: 13px; font-weight: 600; }
+    .admin-role { font-size: 11px; color: var(--text3); }
+
+    /* ===== MAIN ===== */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 0 0 calc(100% - var(--sidebar-w));
+      width: calc(100% - var(--sidebar-w));
+      max-width: calc(100vw - var(--sidebar-w));
+      min-width: 0; display: flex; flex-direction: column; min-height: 100vh;
+    }
+
+    .topbar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px; height: 62px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
+    }
+    .topbar-actions { display: flex; align-items: center; gap: 9px; }
+
+    .search-box {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 13px; width: 215px;
+      transition: border 0.15s, box-shadow 0.15s;
+    }
+    .search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    .search-box input { background: none; border: none; outline: none; color: var(--text); font-size: 13px; width: 100%; font-family: 'DM Sans', sans-serif; }
+    .search-box svg { width: 14px; height: 14px; color: var(--text3); flex-shrink: 0; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+      transition: all 0.16s; font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0.01em;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: white; box-shadow: 0 2px 12px var(--accent-glow);
+    }
+    .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 4px 20px var(--accent-glow); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+    .btn-ghost:hover { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+    .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid rgba(240,82,82,0.2); }
+    .btn-danger:hover { background: rgba(240,82,82,0.18); }
+    .btn-success { background: var(--green-bg); color: var(--green); border: 1px solid rgba(34,212,122,0.2); }
+    .btn-success:hover { background: rgba(34,212,122,0.18); }
+
+    .content { padding: 26px 28px; flex: 1; }
+    .page { display: none; }
+    .page.active { display: block; animation: fadeIn 0.18s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== STAT CARDS ===== */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+
+    .stat-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px;
+      position: relative; overflow: hidden;
+      transition: transform 0.16s, box-shadow 0.16s;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent) 0%, transparent 80%);
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .stat-card::after {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 10px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-top: 12px; font-weight: 600; }
+
+    .badge-green  { background: var(--green-bg);  color: var(--green); }
+    .badge-red    { background: var(--red-bg);    color: var(--red); }
+    .badge-gray   { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+    .badge-amber  { background: var(--amber-bg);  color: var(--amber); }
+    .badge-blue   { background: var(--blue-bg);   color: var(--blue); }
+    .badge-purple { background: var(--accent-bg); color: var(--accent2); }
+
+    /* ===== CHARTS ===== */
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .chart-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px;
+    }
+    .chart-title {
+      font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .chart-title::before { content: ''; width: 3px; height: 16px; background: linear-gradient(180deg, var(--accent), var(--accent2)); border-radius: 2px; }
+
+    /* ===== TABLES ===== */
+    .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .table-header {
+      padding: 16px 22px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(90deg, var(--bg3) 0%, var(--bg2) 100%);
+    }
+    .table-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+    .table-filters { display: flex; gap: 8px; align-items: center; }
+
+    select.filter-sel {
+      background: var(--bg4); border: 1px solid var(--border2); color: var(--text);
+      border-radius: var(--radius-xs); padding: 7px 11px;
+      font-size: 12px; font-weight: 500; outline: none;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; transition: border 0.12s;
+    }
+    select.filter-sel:focus { border-color: var(--accent); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 11px 20px; text-align: left;
+      font-size: 10.5px; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border); background: var(--bg3);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg3); }
+    tbody td { padding: 13px 20px; font-size: 13.5px; vertical-align: middle; }
+
+    .student-cell { display: flex; align-items: center; gap: 11px; }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .student-name { font-weight: 600; font-size: 13.5px; }
+    .student-id { font-size: 11px; color: var(--text3); font-family: monospace; }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
+    .action-btns { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 30px; height: 30px; border-radius: var(--radius-xs);
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg4); color: var(--text2); transition: all 0.14s;
+    }
+    .icon-btn:hover { background: var(--bg5); color: var(--text); transform: scale(1.1); }
+    .icon-btn svg { width: 13px; height: 13px; }
+
+    .progress-bar { background: var(--bg5); border-radius: 4px; height: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+
+    /* ===== FORMS ===== */
+    .form-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px 32px; box-shadow: var(--shadow-sm); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-group.full { grid-column: span 2; }
+
+    label { font-size: 12px; color: var(--text2); font-weight: 600; letter-spacing: 0.02em; }
+
+    input, select, textarea {
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text); border-radius: var(--radius-sm);
+      padding: 10px 13px; font-size: 13.5px; outline: none;
+      transition: border 0.15s, box-shadow 0.15s;
+      font-family: 'DM Sans', sans-serif; width: 100%;
+    }
+    select option { background: var(--bg3); color: var(--text); }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    input::placeholder { color: var(--text3); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .form-section { margin-bottom: 30px; }
+    .form-section-title {
+      font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+      margin-bottom: 20px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 9px;
+    }
+    .form-section-title svg { color: var(--accent2); width: 16px; height: 16px; }
+
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+    .id-display {
+      background: var(--accent-bg); border: 1px solid rgba(124,111,255,0.25);
+      border-radius: var(--radius-sm); padding: 10px 13px;
+      font-size: 13px; font-weight: 700; color: var(--accent2);
+      font-family: monospace; letter-spacing: 0.05em;
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 200;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: 18px; padding: 28px;
+      width: 500px; max-height: 90vh; overflow-y: auto;
+      box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
+      animation: modalIn 0.2s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.94) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .modal-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+    .close-btn {
+      background: var(--bg4); border: none; color: var(--text2);
+      width: 30px; height: 30px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; line-height: 1; transition: all 0.14s;
+    }
+    .close-btn:hover { background: var(--bg5); color: var(--text); }
+
+    /* ===== RECEIPT ===== */
+    .receipt { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-top: 16px; }
+    .receipt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .receipt-logo { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--accent2); }
+    .receipt-title { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .receipt-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 13px; }
+    .receipt-row.total { font-weight: 700; color: var(--green); border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; font-size: 15px; }
+
+    /* ===== REMINDER CARDS ===== */
+    .reminder-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 14px;
+      transition: transform 0.14s, box-shadow 0.14s, border-color 0.14s;
+    }
+    .reminder-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--border2); }
+    .reminder-icon { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .reminder-name { font-weight: 600; font-size: 14px; }
+    .reminder-msg { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state { text-align: center; padding: 70px 20px; color: var(--text3); }
+    .empty-state svg { width: 52px; height: 52px; margin: 0 auto 16px; display: block; opacity: 0.2; }
+    .empty-state p { font-size: 14px; }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: var(--radius); padding: 13px 18px; z-index: 999;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13.5px; font-weight: 500;
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.28s cubic-bezier(.4,0,.2,1);
+      max-width: 320px; box-shadow: var(--shadow-md);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ===== THEME TOGGLE ===== */
+    .theme-toggle-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid var(--border2); background: var(--bg3); color: var(--text2);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.18s;
+    }
+    .theme-toggle-btn:hover { background: var(--bg5); color: var(--accent2); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    .theme-toggle-btn svg { width: 17px; height: 17px; }
+
+    /* ===== SECTION HEADING ===== */
+    .section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .section-heading h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+    .section-heading p { font-size: 13px; color: var(--text3); margin-top: 3px; }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; flex-basis: 100%; width: 100%; max-width: 100vw; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .charts-row { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: span 1; }
+    }
+
+    .theme-toggle-btn .icon-sun,
+    .theme-toggle-btn .icon-moon { display: block; line-height: 0; }
+  
+/* ===== FULLSCREEN IMAGE POPUP ===== */
+.image-popup-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.95);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999999;
+}
+
+.image-popup-overlay.active{
+  display:flex;
+}
+
+.image-popup-overlay img{
+  max-width:95%;
+  max-height:95%;
+  border-radius:12px;
+}
+
+.image-popup-close{
+  position:absolute;
+  top:20px;
+  right:20px;
+  width:45px;
+  height:45px;
+  border:none;
+  border-radius:50%;
+  font-size:28px;
+  cursor:pointer;
+  background:white;
+  color:black;
+}
+
+</style>
+  <script>
+    /* Prevent flash of wrong theme */
+    (function(){var t=localStorage.getItem('edutrack-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}());
+  </script>
+<style id="swami-ui-refresh">
+  /* UI refresh only — no application logic or feature behavior changed */
+  :root {
+    --accent: #23c483;
+    --accent2: #7ee7b7;
+    --accent-bg: rgba(35,196,131,.12);
+    --accent-glow: rgba(35,196,131,.22);
+    --radius: 18px;
+    --radius-sm: 11px;
+    --radius-xs: 8px;
+    --shadow-sm: 0 6px 18px rgba(0,0,0,.18);
+    --shadow-md: 0 16px 38px rgba(0,0,0,.28);
+    --shadow-lg: 0 30px 80px rgba(0,0,0,.42);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 78% -10%, rgba(35,196,131,.08), transparent 32%),
+      radial-gradient(circle at 4% 92%, rgba(245,158,11,.05), transparent 28%),
+      var(--bg);
+  }
+
+  .sidebar {
+    background: linear-gradient(180deg, rgba(15,17,24,.98), rgba(10,12,18,.98));
+    border-right-color: rgba(255,255,255,.08);
+    box-shadow: 10px 0 35px rgba(0,0,0,.22);
+  }
+
+  .sidebar-logo { padding: 19px 17px 17px; }
+  .logo-icon-img {
+    width: 42px; height: 42px; border-radius: 13px;
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 8px 24px rgba(35,196,131,.18);
+  }
+  .logo-text { font-size: 15.5px; }
+  .logo-sub { color: var(--text2); font-size: 9px; line-height: 1.35; }
+
+  .nav { padding: 15px 11px; }
+  .nav-section-label { padding-top: 15px; color: #68718a; }
+  .nav-item {
+    min-height: 40px; border: 1px solid transparent;
+    padding: 9px 11px; margin-bottom: 4px;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,.045); border-color: rgba(255,255,255,.05);
+    transform: translateX(3px);
+  }
+  .nav-item.active {
+    background: linear-gradient(90deg, rgba(35,196,131,.16), rgba(35,196,131,.05));
+    color: #8bf2c2; border-color: rgba(35,196,131,.18);
+    box-shadow: inset 3px 0 0 var(--accent), 0 8px 22px rgba(35,196,131,.08);
+  }
+
+  .main { background: transparent; }
+  .topbar {
+    height: 68px; padding: 0 30px;
+    background: rgba(15,17,24,.78);
+    border-bottom-color: rgba(255,255,255,.07);
+    backdrop-filter: blur(18px) saturate(130%);
+  }
+  .page-title { font-size: 19px; }
+  .content { padding: 30px; }
+
+  .search-box {
+    width: 250px; min-height: 40px;
+    background: rgba(255,255,255,.035);
+    border-color: rgba(255,255,255,.08);
+  }
+  .search-box:focus-within { background: var(--bg3); }
+
+  .btn {
+    min-height: 39px; border-radius: 10px; padding-inline: 17px;
+    box-shadow: 0 5px 14px rgba(0,0,0,.12);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #19ad70, #35d493);
+    box-shadow: 0 8px 24px rgba(35,196,131,.22);
+  }
+  .btn-primary:hover { box-shadow: 0 12px 30px rgba(35,196,131,.30); }
+  .btn-ghost { background: rgba(255,255,255,.025); }
+
+  .section-heading { margin-bottom: 25px; }
+  .section-heading h2 { font-size: 21px; }
+  .section-heading p { color: var(--text2); }
+
+  .stats-grid { gap: 18px; margin-bottom: 26px; }
+  .stat-card, .chart-card, .form-card, .table-card, .reminder-card {
+    background: linear-gradient(145deg, rgba(22,25,34,.94), rgba(13,15,22,.96));
+    border-color: rgba(255,255,255,.075);
+    box-shadow: 0 12px 36px rgba(0,0,0,.18);
+  }
+  .stat-card { padding: 23px; min-height: 142px; }
+  .stat-card::before { height: 3px; background: linear-gradient(90deg, var(--accent), rgba(126,231,183,.35), transparent 88%); }
+  .stat-card:hover, .chart-card:hover, .table-card:hover {
+    border-color: rgba(35,196,131,.18);
+    box-shadow: 0 18px 45px rgba(0,0,0,.26);
+  }
+  .stat-label { color: var(--text2); }
+  .stat-value { font-size: 33px; }
+
+  .chart-card { padding: 24px; }
+  .chart-title { font-size: 15px; }
+
+  .table-card { border-radius: 18px; }
+  .table-header {
+    padding: 17px 21px;
+    background: linear-gradient(90deg, rgba(255,255,255,.035), transparent);
+  }
+  .table-title { font-size: 16px; }
+  thead th { padding: 13px 18px; background: rgba(255,255,255,.025); color: #9aa4bb; }
+  tbody td { padding: 14px 18px; }
+  tbody tr:hover { background: rgba(35,196,131,.045); }
+  tbody tr { border-bottom-color: rgba(255,255,255,.055); }
+
+  .avatar {
+    width: 39px; height: 39px;
+    border: 2px solid rgba(255,255,255,.09);
+    box-shadow: 0 5px 15px rgba(0,0,0,.28);
+  }
+  .student-name { font-size: 14px; }
+  .status-pill, .stat-badge { border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 22%, transparent); }
+
+  .icon-btn {
+    width: 33px; height: 33px; border: 1px solid rgba(255,255,255,.07);
+    background: rgba(255,255,255,.045);
+  }
+  .icon-btn:hover { border-color: rgba(35,196,131,.25); color: var(--accent2); }
+
+  .form-card { padding: 31px; }
+  .form-section-title { font-size: 15px; }
+  input, select, textarea, select.filter-sel {
+    background: rgba(255,255,255,.035);
+    border-color: rgba(255,255,255,.085);
+    min-height: 42px;
+  }
+  input:hover, select:hover, textarea:hover { border-color: rgba(255,255,255,.16); }
+  input:focus, select:focus, textarea:focus {
+    background: var(--bg3); border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(35,196,131,.10);
+  }
+  label { color: #a8b0c2; }
+
+  .modal-overlay { background: rgba(2,4,8,.78); backdrop-filter: blur(12px); }
+  .modal {
+    border-radius: 22px; padding: 29px;
+    background: linear-gradient(155deg, #171a23, #0e1017);
+    border-color: rgba(255,255,255,.11);
+  }
+  .close-btn { border: 1px solid rgba(255,255,255,.07); }
+
+  .reminder-card { border-left: 3px solid transparent; }
+  .reminder-card:hover { border-left-color: var(--accent); }
+
+  .toast { border-radius: 14px; backdrop-filter: blur(14px); }
+
+  [data-theme="light"] body {
+    background:
+      radial-gradient(circle at 78% -10%, rgba(45,122,69,.10), transparent 32%),
+      #f4f1e9;
+  }
+  [data-theme="light"] .sidebar,
+  [data-theme="light"] .topbar,
+  [data-theme="light"] .stat-card,
+  [data-theme="light"] .chart-card,
+  [data-theme="light"] .form-card,
+  [data-theme="light"] .table-card,
+  [data-theme="light"] .reminder-card {
+    background: rgba(255,255,255,.78);
+  }
+  [data-theme="light"] input,
+  [data-theme="light"] select,
+  [data-theme="light"] textarea,
+  [data-theme="light"] .search-box { background: rgba(255,255,255,.72); }
+
+  @media (max-width: 1100px) {
+    .content { padding: 23px; }
+    .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .search-box { width: 210px; }
+  }
+
+  @media (max-width: 700px) {
+    .topbar { height: auto; min-height: 64px; padding: 11px 15px; gap: 10px; }
+    .topbar-actions { gap: 7px; }
+    .search-box { display: none; }
+    .content { padding: 17px 13px 28px; }
+    .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+    .charts-row { gap: 12px; }
+    .form-card { padding: 20px 16px; }
+    .section-heading { align-items: flex-start; gap: 12px; }
+    .table-card { overflow-x: auto; }
+    .table-header { min-width: 720px; }
+    .table-card table { min-width: 720px; }
+    .modal { width: calc(100vw - 22px); padding: 22px 17px; border-radius: 18px; }
+    .btn { padding-inline: 13px; }
+  }
+</style>
+
+
+<style id="swami-ux-enhancements">
+  /* UX enhancements only: navigation, accessibility, touch comfort and responsive behavior */
+  .skip-link{position:fixed;left:16px;top:-60px;z-index:100000;background:var(--accent);color:#06110c;padding:10px 14px;border-radius:10px;font-weight:800;text-decoration:none;transition:top .18s}
+  .skip-link:focus{top:14px}
+  :focus-visible{outline:3px solid rgba(126,231,183,.75)!important;outline-offset:3px!important}
+  button:focus:not(:focus-visible),input:focus:not(:focus-visible),select:focus:not(:focus-visible),textarea:focus:not(:focus-visible){outline:none}
+  .mobile-menu-btn{display:none;width:42px;height:42px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);border-radius:11px;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+  .mobile-menu-btn svg{width:20px;height:20px}
+  .sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.58);backdrop-filter:blur(3px);z-index:90;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
+  .sidebar-backdrop.open{opacity:1;visibility:visible}
+  .nav-item[role="button"]{user-select:none}
+  .nav-item:active,.btn:active,.icon-btn:active,.theme-toggle-btn:active{transform:scale(.97)}
+  .btn:disabled,.icon-btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;filter:none!important}
+  .table-card{position:relative}
+  .table-card table{border-collapse:separate;border-spacing:0}
+  .table-card thead th{position:sticky;top:0;z-index:3;backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--border)}
+  .table-card tbody tr:last-child td{border-bottom:0}
+  .table-card tbody tr:focus-within{background:rgba(35,196,131,.055)}
+  .table-card::after{content:'';position:absolute;right:0;top:58px;bottom:0;width:22px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg2));opacity:0}
+  input,select,textarea{font-size:16px}
+  @media (min-width:701px){input,select,textarea{font-size:13px}}
+  textarea{resize:vertical;min-height:96px}
+  label{line-height:1.35}
+  .form-group{min-width:0}
+  .modal{max-height:min(88vh,850px);overflow-y:auto;overscroll-behavior:contain}
+  .modal-header{position:sticky;top:-29px;z-index:4;background:linear-gradient(180deg,#171a23 75%,transparent);padding-top:2px}
+  .toast{bottom:max(20px,env(safe-area-inset-bottom));right:max(20px,env(safe-area-inset-right));aria-live:polite}
+  .empty-state{min-height:260px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+  .section-heading{gap:16px;flex-wrap:wrap}
+  .section-heading>div:last-child{display:flex;gap:8px;flex-wrap:wrap}
+  @media (max-width:900px){
+    .mobile-menu-btn{display:inline-flex}
+    .sidebar{transform:translateX(-105%);transition:transform .24s cubic-bezier(.2,.8,.2,1);z-index:100}
+    .sidebar.mobile-open{transform:translateX(0)}
+    body.sidebar-open{overflow:hidden}
+    .topbar{justify-content:flex-start}
+    .topbar-actions{margin-left:auto}
+    .page-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  }
+  @media (max-width:700px){
+    .topbar{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+    .page-title{font-size:16px;max-width:34vw}
+    #btn-new-student{font-size:0;width:42px;padding:0;justify-content:center}
+    #btn-new-student svg{width:18px;height:18px}
+    .content{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+    .table-card{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+    .table-card::after{opacity:1}
+    .table-header{min-width:0!important;position:sticky;left:0;z-index:5}
+    .table-filters{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
+    .table-filters>*{min-width:0!important;width:100%!important}
+    .section-heading{align-items:stretch}
+    .section-heading .btn{width:100%;justify-content:center}
+    .form-actions,.modal-actions{position:sticky;bottom:-1px;z-index:5;background:linear-gradient(0deg,var(--bg2) 75%,transparent);padding-top:14px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+    .toast{left:12px;right:12px;max-width:none;justify-content:center;text-align:center}
+    #page-dashboard>div:nth-of-type(2){grid-template-columns:1fr!important}
+    #page-dashboard>div:nth-of-type(2)>div{padding:24px 20px!important;gap:18px!important}
+    #page-dashboard>div:nth-of-type(2)>div>div:first-child{width:56px!important;height:56px!important}
+  }
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+  <script src="/wa-render.js"></script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="main-sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <img src="/assets/swami-abhyasika-mark.jpg" alt="Swami Abhyasika Logo" class="logo-icon-img" style="object-fit:contain;background:#faf7ef;">
+        <div>
+          <div class="logo-text">Swami Abhyasika</div>
+          <div class="logo-sub">Management System</div>
+        </div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+        </svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('admissions',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+        </svg>
+        Students
+      </div>
+      <div class="nav-item" onclick="newAdmission()">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+        </svg>
+        New Admission
+      </div>
+      <div class="nav-section-label" style="margin-top:12px;">Library</div>
+      <div class="nav-item" onclick="showPage('basement',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>
+        Basement Library
+      </div>
+      <div class="nav-item" onclick="showPage('floor2',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        2nd Floor Library
+      </div>
+      <div class="nav-section-label" style="margin-top:12px;">Finance</div>
+      <div class="nav-item" onclick="showPage('fees',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
+        </svg>
+        Fee Management
+      </div>
+      <div class="nav-item" onclick="showPage('reminders',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+        </svg>
+        Reminders
+        <span class="nav-badge" id="reminder-badge">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('settings',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+        Settings
+      </div>
+      <div class="nav-item" onclick="showPage('statistics',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z" />
+        </svg>
+        Statistics
+      </div>
+      <div class="nav-section-label" style="margin-top:12px;">Tools</div>
+      <div class="nav-item" onclick="showPage('export',this)">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+        </svg>
+        Export Data
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-card">
+        <div class="admin-avatar">AD</div>
+        <div>
+          <div class="admin-name">Admin</div>
+          <div class="admin-role">System Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-content" tabindex="-1">
+    <div class="topbar">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" type="button" aria-label="Open navigation menu" aria-controls="main-sidebar" aria-expanded="false">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="topbar-actions">
+        <button class="theme-toggle-btn" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
+          <span class="icon-sun"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg></span>
+          <span class="icon-moon"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></span>
+        </button>
+        <!-- Command Palette Trigger -->
+        <div class="search-box" onclick="openCommandPalette()" style="cursor:pointer;min-width:220px;" title="Search (Ctrl+K)">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <span style="color:var(--text3);font-size:13px;pointer-events:none;flex:1;">Search students, actions...</span>
+          <kbd style="font-size:10px;color:var(--text3);background:var(--bg4);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-family:monospace;pointer-events:none;">Ctrl K</kbd>
+        </div>
+        <button class="btn btn-primary" id="btn-new-student"
+          onclick="newAdmission()">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+          </svg>
+          New Student
+        </button>
+
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div style="position:relative;border-radius:20px;overflow:hidden;margin-bottom:24px;min-height:300px;display:flex;align-items:center;justify-content:center;">
+          <div style="position:absolute;inset:0;background:url('/assets/swami-abhyasika-logo.jpg') center center/cover no-repeat;filter:brightness(0.18) blur(3px);transform:scale(1.06);"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(8,10,16,0.6) 0%,rgba(124,111,255,0.15) 100%);"></div>
+          <div style="position:relative;z-index:2;text-align:center;padding:44px 32px;">
+            <img src="/assets/swami-abhyasika-mark.jpg" alt="Swami Abhyasika" style="width:150px;height:150px;object-fit:contain;border-radius:50%;border:3px solid rgba(200,170,80,0.75);box-shadow:0 0 40px rgba(200,170,80,0.3),0 8px 32px rgba(0,0,0,0.7);margin-bottom:18px;background:#faf7ef;">
+            <h2 style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.02em;color:#fff;margin-bottom:8px;text-shadow:0 2px 16px rgba(0,0,0,0.8);">Welcome to Swami Abhyasika</h2>
+            <p style="color:rgba(200,170,80,0.9);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;margin-bottom:8px;">Center for Spiritual Practice &amp; Learning</p>
+            <p style="color:rgba(255,255,255,0.45);font-size:13px;">Select an option from the sidebar to manage students, fees, or view statistics.</p>
+          </div>
+        </div>
+
+        <div style="padding:0 4px;margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div onclick="showPage('basement', document.querySelector('[onclick*=\'basement\']'))"
+            style="background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%);border:2px solid var(--accent);border-radius:16px;padding:40px 36px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:28px;box-shadow:0 4px 24px rgba(108,99,255,0.12);"
+            onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 32px rgba(108,99,255,0.22)'"
+            onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 24px rgba(108,99,255,0.12)'">
+            <div style="width:72px;height:72px;border-radius:16px;background:var(--accent-bg);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="36" height="36" fill="var(--accent2)" viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin-bottom:6px;">Basement Library</div>
+              <div style="font-size:14px;color:var(--text3);">Manage seats, schedules and members of the Basement Library</div>
+            </div>
+            <svg width="24" height="24" fill="var(--accent2)" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+          </div>
+
+          <div onclick="showPage('floor2', document.querySelector('[onclick*=\'floor2\']'))"
+            style="background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%);border:2px solid var(--amber);border-radius:16px;padding:40px 36px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:28px;box-shadow:0 4px 24px rgba(245,158,11,0.10);"
+            onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 32px rgba(245,158,11,0.20)'"
+            onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 24px rgba(245,158,11,0.10)'">
+            <div style="width:72px;height:72px;border-radius:16px;background:var(--amber-bg);border:2px solid var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="36" height="36" fill="var(--amber)" viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin-bottom:6px;">2nd Floor Library</div>
+              <div style="font-size:14px;color:var(--text3);">Manage seats, schedules and members of the 2nd Floor Library</div>
+            </div>
+            <svg width="24" height="24" fill="var(--amber)" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATISTICS -->
+      <div class="page" id="page-statistics">
+
+        <!-- Period Selector -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+          <h2 style="font-size:16px;font-weight:700;">Statistics & Revenue</h2>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <select id="stats-period" onchange="renderDashboard()"
+              style="padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;font-weight:600;">
+              <option value="this_month">This Month (1–1)</option>
+              <option value="last_month">Last Month (1–1)</option>
+              <option value="last_3">Last 3 Months</option>
+              <option value="last_6">Last 6 Months</option>
+              <option value="this_year">This Year</option>
+              <option value="all">All Time</option>
+            </select>
+            <div id="stats-period-label" style="font-size:12px;color:var(--text3);font-weight:600;padding:7px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);"></div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Students</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <span class="stat-badge badge-blue">Enrolled</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">New This Month</div>
+            <div class="stat-value" id="stat-new">0</div>
+            <span class="stat-badge badge-green">This month</span>
+          </div>
+          <div class="stat-card" style="border-top:2px solid var(--green)">
+            <div class="stat-label">Fees Collected</div>
+            <div class="stat-value" id="stat-collected" style="color:var(--green)">₹0</div>
+            <span class="stat-badge badge-green" id="stat-collected-badge">This period</span>
+          </div>
+          <div class="stat-card" style="border-top:2px solid var(--red)">
+            <div class="stat-label">Pending Fees</div>
+            <div class="stat-value" id="stat-pending" style="color:var(--red)">₹0</div>
+            <span class="stat-badge badge-red">Overdue students</span>
+          </div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title">Fee Collection Overview</div>
+            <div style="position:relative;height:220px">
+              <canvas id="feeChart" role="img" aria-label="Doughnut chart showing paid vs pending fees"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Students by Course</div>
+            <div style="position:relative;height:220px">
+              <canvas id="courseChart" role="img" aria-label="Bar chart of students per course"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method Statistics Row -->
+        <div class="charts-row" style="margin-top:0;">
+          <div class="chart-card" style="flex:1;">
+            <div class="chart-title">💳 Payment Method Breakdown</div>
+            <div style="position:relative;height:220px;">
+              <canvas id="payMethodChart" role="img" aria-label="Doughnut chart showing payment methods"></canvas>
+            </div>
+          </div>
+          <div class="chart-card" style="flex:1;">
+            <div class="chart-title">📅 Monthly Revenue</div>
+            <div style="position:relative;height:220px;">
+              <canvas id="monthlyRevenueChart" role="img" aria-label="Bar chart of monthly revenue"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method Summary Cards -->
+        <div id="pay-method-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;"></div>
+
+
+        <!-- CASH CLOSING REPORT -->
+        <div class="chart-card" style="margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <div>
+              <div class="chart-title" style="margin-bottom:3px;">💵 Cash Closing Report</div>
+              <div style="font-size:12px;color:var(--text3);">Daily cash, UPI and collection reconciliation</div>
+            </div>
+            <input type="date" id="cash-close-date" onchange="renderCashClosing()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);">
+          </div>
+          <div id="cash-close-summary" class="stats-grid" style="margin-bottom:16px;"></div>
+          <div class="form-grid" style="margin-bottom:14px;">
+            <div class="form-group"><label>Opening Cash</label><input type="number" min="0" id="cash-opening" placeholder="0" oninput="renderCashClosing()"></div>
+            <div class="form-group"><label>Actual Closing Cash</label><input type="number" min="0" id="cash-actual" placeholder="Count physical cash" oninput="renderCashClosing()"></div>
+            <div class="form-group"><label>Closed By</label><input type="text" id="cash-closed-by" value="Admin" placeholder="Enter name"></div>
+            <div class="form-group full"><label>Notes / Difference Reason</label><input type="text" id="cash-notes" placeholder="Required when there is a cash difference"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div id="cash-close-result" style="font-weight:700;"></div>
+            <button class="btn btn-primary" onclick="saveCashClosing()">Close Day</button>
+          </div>
+          <div style="margin-top:18px;overflow:auto;">
+            <table><thead><tr><th>Date</th><th>Cash</th><th>UPI/Online</th><th>Total</th><th>Difference</th><th>Closed By</th><th>Status</th></tr></thead><tbody id="cash-close-history"></tbody></table>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Recent Admissions</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Admission Date</th>
+                <th>Fees Paid</th>
+                <th>Fee Status</th>
+              </tr>
+            </thead>
+            <tbody id="recent-table">
+              <tr>
+                <td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">No students yet. Add your
+                  first student!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- STUDENTS LIST -->
+      <div class="page" id="page-admissions">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">All Students</div>
+            <div class="table-filters">
+              <select class="filter-sel" id="filter-course" onchange="renderStudentTable()">
+                <option value="">All Courses</option>
+              </select>
+              <select class="filter-sel" id="filter-status" onchange="renderStudentTable()">
+                <option value="">All Status</option>
+                <option value="Paid">Active</option>
+                <option value="Pending">Pending</option>
+                <option value="Overdue">Overdue</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Phone</th>
+                  <th>Course</th>
+                  <th>Subscription</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="student-table">
+                <tr>
+                  <td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">No students enrolled yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMISSION FORM -->
+      <div class="page" id="page-admission-form">
+        <div class="form-card">
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+              Personal Information
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Student ID (Auto-generated)</label>
+                <div class="id-display" id="new-id">STU-0001</div>
+              </div>
+              <div class="form-group">
+                <label>Admission Date</label>
+                <input type="date" id="f-admission-date" onchange="autoUpdateAdmissionFee()">
+              </div>
+              <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" id="f-name" placeholder="Enter full name">
+              </div>
+              <div class="form-group">
+                <label>Student Photo</label>
+                <input type="file" id="f-photo" accept="image/*">
+              </div>
+              <div class="form-group">
+                <label>Conditions / Remarks</label>
+                <input type="text" id="f-conditions" placeholder="Enter conditions...">
+              </div>
+              <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="tel" id="f-phone" placeholder="+91 XXXXX XXXXX">
+              </div>
+              <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="f-email" placeholder="email@example.com">
+              </div>
+              <div class="form-group">
+                <label>Gender</label>
+                <select id="f-gender" onchange="autoUpdateAdmissionFee()">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label>Address</label>
+                <textarea id="f-address" placeholder="Full address..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+              </svg>
+              Course & Fee Details
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Course / Class *</label>
+                <select id="f-course">
+                  <option value="">Select Course</option>
+                  <option>UPSC MPSC</option>
+                  <option>IIT JEE/MHT CET</option>
+                  <option>MEDICAL</option>
+                  <option>OTHER</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Study Shift</label>
+                <select id="f-shift" onchange="autoUpdateAdmissionFee()">
+                  <option value="Day">Day</option>
+                  <option value="Night">Night</option>
+                  <option value="Both">Both</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Subscription Months</label>
+                <select id="f-months" onchange="autoUpdateAdmissionFee()">
+                  <option value="1">1 Month</option>
+                  <option value="2">2 Months</option>
+                  <option value="3">3 Months</option>
+                  <option value="6">6 Months</option>
+                  <option value="12">12 Months</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Subscription Fee (₹) *</label>
+                <input type="number" id="f-total-fees" min="1" step="1" placeholder="0" oninput="sanitizeNumberInput(this, 1)">
+              </div>
+              <div class="form-group">
+                <label>Payment Date</label>
+                <input type="date" id="f-payment-date" onchange="if(document.getElementById('f-enable-seat')?.checked) fLoadSeatSlots();">
+              </div>
+              <div class="form-group">
+                <label>Fee Due Date</label>
+                <input type="date" id="f-due-date" onchange="if(document.getElementById('f-enable-seat')?.checked) fLoadSeatSlots();">
+              </div>
+              <div class="form-group">
+                <label>Payment Method</label>
+                <select id="f-payment-method">
+                  <option value="Cash">💵 Cash</option>
+                  <option value="UPI">📱 UPI</option>
+                  <option value="Online Transfer">🏦 Online Transfer</option>
+                  <option value="Cheque">📄 Cheque</option>
+                  <option value="DD">📋 Demand Draft (DD)</option>
+                  <option value="Card">💳 Card</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label>Payment Note / Remarks</label>
+                <textarea id="f-payment-notes" rows="2" placeholder="e.g. Paid via GPay, Ref #1234 · Concession granted · Partial payment..." style="resize:vertical;"></textarea>
+              </div>
+            </div>
+          </div>
+          <!-- STEP 3: INLINE SEAT BOOKING -->
+          <div class="form-section" id="f-seat-section">
+            <div class="form-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4v3zm15-8h3v3h-3v-3zM2 10h3v3H2v-3zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v8z"/></svg>
+                Seat Booking
+                <span style="font-size:11px;font-weight:400;color:var(--text3);">(optional)</span>
+              </span>
+              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);">
+                <input type="checkbox" id="f-enable-seat" onchange="fToggleSeatBooking()" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+                Enable Seat Booking
+              </label>
+            </div>
+
+            <div id="f-seat-body" style="display:none;">
+              <!-- Period info — auto-read from payment date & due date above -->
+              <div id="f-seat-period-info" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:var(--radius-sm);margin-bottom:14px;font-size:13px;">
+                <span style="font-size:18px;">📅</span>
+                <div>
+                  <div style="font-weight:700;color:var(--accent2);">Seat reserved for subscription period</div>
+                  <div style="font-size:12px;color:var(--text3);" id="f-seat-period-label">Set Payment Date &amp; Due Date above to continue</div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">
+                  Time Slots <span style="color:var(--accent2);font-size:10px;font-weight:500;background:var(--accent-bg);padding:2px 8px;border-radius:10px;margin-left:4px;">select multiple</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin-bottom:10px;" id="f-slot-grid">
+                  <div style="color:var(--text3);font-size:12px;grid-column:1/-1;">Select a date first</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:8px;border-top:1px dashed var(--border);">
+                  <span style="font-size:11px;color:var(--text3);font-weight:600;">Custom time:</span>
+                  <input type="time" id="f-manual-s" style="padding:6px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:12px;outline:none;">
+                  <span style="font-size:11px;color:var(--text3);">to</span>
+                  <input type="time" id="f-manual-e" style="padding:6px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:12px;outline:none;">
+                  <button onclick="fAddManualSlot()" style="padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent2);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">+ Add</button>
+                </div>
+                <div id="f-manual-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+                <div id="f-slot-summary" style="display:none;margin-top:8px;padding:7px 12px;background:var(--accent-bg);border-radius:8px;font-size:12px;font-weight:600;color:var(--accent2);"></div>
+              </div>
+
+              <div id="f-seatmap-wrap" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+                  <div style="font-size:12px;font-weight:700;color:var(--text2);" id="f-seatmap-label"></div>
+                  <div style="font-size:12px;display:flex;gap:12px;">
+                    <span style="color:#22d47a;" id="f-avail-count"></span>
+                    <span style="color:var(--red);" id="f-occ-count"></span>
+                  </div>
+                </div>
+                <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
+                  <span style="font-size:11px;display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:2px;background:#22d47a22;border:2px solid #22d47a;display:inline-block;"></span>Available</span>
+                  <span style="font-size:11px;display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:2px;background:var(--red-bg);border:2px solid var(--red);display:inline-block;"></span>Occupied</span>
+                  <span style="font-size:11px;display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:2px;background:#7c6fff33;border:2px solid #7c6fff;display:inline-block;"></span>Selected</span>
+                </div>
+                <div style="text-align:center;margin-bottom:10px;">
+                  <span style="display:inline-block;background:var(--bg4);border:1px dashed var(--border2);border-radius:6px;padding:3px 24px;font-size:11px;color:var(--text3);">Librarian Desk / Entry</span>
+                </div>
+                <div style="overflow-x:auto;"><div style="min-width:560px;">
+                  <div id="f-seat-grid" style="display:flex;flex-direction:column;gap:5px;align-items:center;"></div>
+                </div></div>
+                <div id="f-sel-seat-info" style="display:none;margin-top:10px;padding:9px 14px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;font-size:13px;font-weight:600;color:var(--accent2);text-align:center;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="resetForm()">Clear</button>
+            <button class="btn btn-primary" onclick="submitAdmission()">&#128190; Save &amp; Book</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEE MANAGEMENT -->
+      <div class="page" id="page-fees">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Fee Management</div>
+            <div class="table-filters">
+              <select class="filter-sel" id="fee-filter" onchange="renderFeeTable()">
+                <option value="">All Students</option>
+                <option value="Pending">Pending</option>
+                <option value="Overdue">Overdue</option>
+                <option value="Paid">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Course</th>
+                  <th>Subscription</th>
+                  <th style="color:var(--green)">Fees Paid</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="fee-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REMINDERS -->
+      <div class="page" id="page-reminders">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <h2 style="font-size:16px;font-weight:600;margin-bottom:4px">Automated Reminders</h2>
+            <p style="font-size:13px;color:var(--text3)">Students with upcoming or overdue memberships</p>
+          </div>
+          <button class="btn btn-primary" onclick="sendAllReminders()">Send All Reminders</button>
+        </div>
+        <!-- Filter Tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:18px;" id="reminder-filter-tabs">
+          <button onclick="setReminderFilter('all', this)" id="rfTab-all"
+            style="padding:8px 20px;border-radius:20px;border:1.5px solid var(--accent);background:var(--accent-bg);color:var(--accent2);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;">
+            All
+          </button>
+          <button onclick="setReminderFilter('overdue', this)" id="rfTab-overdue"
+            style="padding:8px 20px;border-radius:20px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;">
+            🔴 Overdue
+          </button>
+          <button onclick="setReminderFilter('remaining', this)" id="rfTab-remaining"
+            style="padding:8px 20px;border-radius:20px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;">
+            🟢 Remaining
+          </button>
+        </div>
+        <div id="reminders-list"></div>
+      </div>
+
+
+
+
+      <!-- SETTINGS PAGE -->
+      <div class="page" id="page-settings">
+
+        <div class="form-card" style="margin-bottom:20px;">
+          <div class="form-section">
+            <div class="form-section-title">🔐 Student Delete Approval</div>
+            <p style="font-size:13px;color:var(--text3);margin-bottom:14px;">Deleting a student now creates a pending request. The owner PIN is required to approve and permanently delete.</p>
+            <div class="form-grid">
+              <div class="form-group"><label>Set / Change Owner PIN</label><input type="password" id="owner-delete-pin" maxlength="12" placeholder="Minimum 4 digits"></div>
+              <div class="form-group" style="justify-content:flex-end;"><label>&nbsp;</label><button class="btn btn-primary" onclick="saveOwnerDeletePin()">Save Owner PIN</button></div>
+            </div>
+            <div style="margin-top:18px;overflow:auto;"><table><thead><tr><th>Requested</th><th>Student</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="delete-approval-list"></tbody></table></div>
+          </div>
+        </div>
+
+        <div style="max-width:720px;display:flex;flex-direction:column;gap:20px;">
+
+          <!-- Fee Configuration -->
+          <div class="form-card">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+              Fee Configuration
+            </div>
+            <p style="font-size:13px;color:var(--text3);margin-bottom:18px;">Set default fees per gender, shift and duration. Unlisted durations use the 1-month rate × months.</p>
+            <div id="fee-tiers-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border)">
+              <div class="form-group" style="flex:1;min-width:100px"><label>Gender</label><select id="new-tier-gender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
+              <div class="form-group" style="flex:1;min-width:100px"><label>Shift</label><select id="new-tier-shift"><option value="Day">Day</option><option value="Night">Night</option><option value="Both">Both</option></select></div>
+              <div class="form-group" style="flex:1;min-width:100px"><label>Months</label><input type="number" id="new-tier-months" min="1" step="1" placeholder="e.g. 3" oninput="sanitizeNumberInput(this,1,true)"></div>
+              <div class="form-group" style="flex:1;min-width:120px"><label>Total Fee (₹)</label><input type="number" id="new-tier-fee" min="1" step="1" placeholder="e.g. 2700" oninput="sanitizeNumberInput(this,1)"></div>
+              <button class="btn btn-primary" onclick="addFeeTier()" style="height:42px">Add Rule</button>
+            </div>
+          </div>
+
+          <!-- Reminder Settings -->
+          <div class="form-card">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+              Reminder Settings
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Remind before due (days)</label>
+                <input type="number" id="remind-days" min="1" max="30" placeholder="e.g. 5" oninput="sanitizeNumberInput(this,1,true)">
+                <span style="font-size:11px;color:var(--text3);margin-top:3px">Show reminder this many days before expiry</span>
+              </div>
+              <div class="form-group">
+                <label>Auto-Inactive after overdue (days)</label>
+                <input type="number" id="inactive-days" min="1" placeholder="e.g. 60" oninput="sanitizeNumberInput(this,1,true)">
+                <span style="font-size:11px;color:var(--text3);margin-top:3px">Mark student Inactive after this many overdue days</span>
+              </div>
+            </div>
+            <div class="form-actions" style="margin-top:16px">
+              <button class="btn btn-primary" onclick="saveReminderSettings()">Save Settings</button>
+            </div>
+          </div>
+
+          <!-- Theme Options -->
+          <div class="form-card">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+              🎨 Theme Options
+            </div>
+            <!-- Dark / Light toggle -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px;">
+              <div>
+                <div style="font-weight:600;font-size:14px;">Dark / Light Mode</div>
+                <div style="font-size:12px;color:var(--text3);margin-top:2px;">Toggle between dark and light theme</div>
+              </div>
+              <button class="btn btn-ghost" onclick="toggleTheme()" style="gap:8px;">
+                <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+                Toggle Theme
+              </button>
+            </div>
+            <!-- Accent colour presets -->
+            <div style="margin-bottom:6px;">
+              <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;">Accent Colour</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;" id="accent-swatches">
+                <button onclick="setAccentColor('#7c6fff','#a59bff')" title="Purple (default)" style="width:32px;height:32px;border-radius:50%;background:#7c6fff;border:3px solid #7c6fff;cursor:pointer;transition:.15s;" id="swatch-purple"></button>
+                <button onclick="setAccentColor('#38bdf8','#7dd3fc')" title="Blue" style="width:32px;height:32px;border-radius:50%;background:#38bdf8;border:3px solid #38bdf8;cursor:pointer;transition:.15s;" id="swatch-blue"></button>
+                <button onclick="setAccentColor('#22d47a','#4ade80')" title="Green" style="width:32px;height:32px;border-radius:50%;background:#22d47a;border:3px solid #22d47a;cursor:pointer;transition:.15s;" id="swatch-green"></button>
+                <button onclick="setAccentColor('#f59e0b','#fbbf24')" title="Amber" style="width:32px;height:32px;border-radius:50%;background:#f59e0b;border:3px solid #f59e0b;cursor:pointer;transition:.15s;" id="swatch-amber"></button>
+                <button onclick="setAccentColor('#f05252','#fb7185')" title="Red" style="width:32px;height:32px;border-radius:50%;background:#f05252;border:3px solid #f05252;cursor:pointer;transition:.15s;" id="swatch-red"></button>
+                <button onclick="setAccentColor('#a855f7','#c084fc')" title="Violet" style="width:32px;height:32px;border-radius:50%;background:#a855f7;border:3px solid #a855f7;cursor:pointer;transition:.15s;" id="swatch-violet"></button>
+              </div>
+            </div>
+            <!-- Font size -->
+            <div style="margin-top:16px;">
+              <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;">Font Size</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost" onclick="setFontSize(13)" id="fs-small" style="font-size:12px;">Small</button>
+                <button class="btn btn-ghost" onclick="setFontSize(14)" id="fs-medium" style="font-size:13px;">Medium</button>
+                <button class="btn btn-ghost" onclick="setFontSize(15)" id="fs-large" style="font-size:14px;">Large</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Course Configuration -->
+          <div class="form-card">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+              📚 Course Configuration
+            </div>
+            <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">Manage the courses available in the admission form. Drag to reorder.</p>
+            <div id="course-config-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+            <div style="display:flex;gap:10px;align-items:flex-end;padding:14px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="form-group" style="flex:1;margin:0;">
+                <label>New Course Name</label>
+                <input type="text" id="new-course-name" placeholder="e.g. Commerce, Science, Arts..." onkeydown="if(event.key==='Enter') addCourseConfig()">
+              </div>
+              <button class="btn btn-primary" onclick="addCourseConfig()" style="height:42px;white-space:nowrap;">Add Course</button>
+            </div>
+            <div class="form-actions" style="margin-top:16px">
+              <button class="btn btn-primary" onclick="saveCourseConfig()">Save Courses</button>
+              <button class="btn btn-ghost" onclick="resetCourseConfig()">Reset to Default</button>
+            </div>
+          </div>
+
+          <!-- Data Management -->
+          <div class="form-card">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.35C18 2.53 15.47 0 12.35 0c-1.7 0-3.23.76-4.29 1.97L6 4 4.73 2.73C4.28 2.28 3.66 2 3 2 1.34 2 0 3.34 0 5s1.34 3 3 3h1v11c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8h1c.55 0 1-.45 1-1s-.45-1-1-1h-1zm-9 13H6v-2h5v2zm0-4H6v-2h5v2zm0-4H6V9h5v2zm6 8h-4V9h4v10z"/></svg>
+              Data Management
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div>
+                  <div style="font-weight:600;font-size:14px;">Backup &amp; Restore</div>
+                  <div style="font-size:12px;color:var(--text3);margin-top:2px;">Download a full backup, back up to Google Drive, see history and the daily schedule</div>
+                </div>
+                <a class="btn btn-success" href="/settings/backup" style="text-decoration:none;">Open Backups</a>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div>
+                  <div style="font-weight:600;font-size:14px;">WhatsApp Message Templates</div>
+                  <div style="font-size:12px;color:var(--text3);margin-top:2px;">Edit the wording of the messages the app sends to students</div>
+                </div>
+                <a class="btn btn-success" href="/settings/whatsapp" style="text-decoration:none;">Edit Templates</a>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div>
+                  <div style="font-weight:600;font-size:14px;">Import Backup</div>
+                  <div style="font-size:12px;color:var(--text3);margin-top:2px;">Restore data from a previously exported JSON file</div>
+                </div>
+                <label class="btn btn-ghost" style="cursor:pointer;">
+                  Import JSON
+                  <input type="file" id="import-backup-file" accept=".json" style="display:none" onchange="importBackup(this)">
+                </label>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--red-bg);border-radius:var(--radius-sm);border:1px solid rgba(240,82,82,0.2);">
+                <div>
+                  <div style="font-weight:600;font-size:14px;color:var(--red);">Clear All Data</div>
+                  <div style="font-size:12px;color:var(--text3);margin-top:2px;">Permanently delete all students and payments</div>
+                </div>
+                <button class="btn btn-danger" onclick="clearAllData()">Clear All</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- About -->
+          <div class="form-card">
+            <div class="form-section-title">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              About
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
+              <div style="padding:12px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div style="color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">App Name</div>
+                <div style="font-weight:600;">Swami Abhyasika SMS</div>
+              </div>
+              <div style="padding:12px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div style="color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Version</div>
+                <div style="font-weight:600;">v2.0.0</div>
+              </div>
+              <div style="padding:12px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div style="color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Total Students</div>
+                <div style="font-weight:600;" id="settings-total-students">—</div>
+              </div>
+              <div style="padding:12px 16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div style="color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Storage Used</div>
+                <div style="font-weight:600;" id="settings-storage">—</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="page" id="page-export">
+        <div class="form-card" style="max-width:600px">
+          <div class="form-section-title">Export Student Data</div>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:24px">Download all student records and payment data
+            in your preferred format.</p>
+          <div style="display:grid;gap:12px">
+            <div
+              style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-weight:500;margin-bottom:4px">Excel Spreadsheet (.xlsx)</div>
+                <div style="font-size:12px;color:var(--text3)">Full student data with fee details</div>
+              </div>
+              <button class="btn btn-success" onclick="exportExcel()">Download Excel</button>
+            </div>
+            <div
+              style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-weight:500;margin-bottom:4px">PDF Report</div>
+                <div style="font-size:12px;color:var(--text3)">Formatted report for printing</div>
+              </div>
+              <button class="btn btn-danger" onclick="exportPDF()">Download PDF</button>
+            </div>
+            <div
+              style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-weight:500;margin-bottom:4px">CSV File (.csv)</div>
+                <div style="font-size:12px;color:var(--text3)">Raw data for any spreadsheet app</div>
+              </div>
+              <button class="btn btn-ghost" onclick="exportCSV()">Download CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BASEMENT LIBRARY -->
+      <div class="page" id="page-basement">
+
+        <style>
+          .lib-tab{padding:9px 20px;border-radius:20px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+          .lib-tab.active{border-color:var(--accent);background:var(--accent-bg);color:var(--accent2)}
+          .slot-btn{padding:10px 14px;border-radius:10px;border:1.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;text-align:center}
+          .slot-btn:hover{border-color:var(--accent);color:var(--accent2)}
+          .slot-btn.sel{border-color:var(--accent);background:var(--accent-bg);color:var(--accent2);box-shadow:0 0 0 3px var(--accent-bg)}
+          .slot-btn.full{border-color:var(--red);background:var(--red-bg);color:var(--red);cursor:not-allowed;opacity:.75}
+          .bseat{width:42px;height:42px;border-radius:8px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;flex-shrink:0;position:relative}
+          .bseat.avail{background:#22d47a22;border-color:#22d47a;color:#22d47a}
+          .bseat.avail:hover{background:#22d47a44;transform:scale(1.1);box-shadow:0 0 10px #22d47a44}
+          .bseat.occ{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+          .bseat.occ:hover{transform:scale(1.12);box-shadow:0 0 14px rgba(239,68,68,0.45);z-index:2;}
+          .bseat.sel-seat{background:#7c6fff33;border-color:#7c6fff;color:#7c6fff;box-shadow:0 0 12px #7c6fff55;transform:scale(1.1)}
+          .bseat.mine{background:#38bdf822;border-color:#38bdf8;color:#38bdf8}
+          .b-stat{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-align:center}
+          .b-tbl{width:100%;border-collapse:collapse;font-size:13px}
+          .b-tbl th{padding:9px 12px;text-align:left;color:var(--text3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+          .b-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+          .b-tbl tr:last-child td{border-bottom:none}
+          .b-tbl tr:hover td{background:var(--bg3)}
+
+          /* Seat tooltip */
+          .bseat-tip{
+            display:none;position:fixed;z-index:9999;
+            background:var(--bg4,#1a1d2e);border:1px solid var(--border2);
+            border-radius:10px;padding:9px 13px;font-size:12px;color:var(--text);
+            pointer-events:none;box-shadow:0 8px 28px rgba(0,0,0,0.45);
+            max-width:200px;line-height:1.5;white-space:nowrap;
+          }
+
+          /* Seat detail popup overlay */
+          #bseat-popup-overlay{
+            display:none;position:fixed;inset:0;z-index:10000;
+            background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);
+            align-items:center;justify-content:center;
+          }
+          #bseat-popup-overlay.open{display:flex;}
+          #bseat-popup-box{
+            background:var(--bg2);border:1px solid var(--border2);border-radius:18px;
+            padding:26px 28px;max-width:380px;width:90%;
+            box-shadow:0 24px 64px rgba(0,0,0,0.6);position:relative;
+          }
+          .bseat-popup-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);gap:12px;}
+          .bseat-popup-row:last-child{border-bottom:none;}
+          .bseat-popup-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+          .bseat-popup-val{font-size:13px;color:var(--text);font-weight:600;text-align:right;}
+
+          /* Always-visible overview grid */
+          #b-overview-grid .bseat{width:36px;height:36px;font-size:9px;}
+          #b-overview-grid .bseat.avail:hover{transform:scale(1.08);}
+        </style>
+
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;">📚 Basement Library — Seat Booking</h2>
+            <p style="font-size:13px;color:var(--text3);">87 seats · Book by date &amp; time slot · Multi-slot selection · Auto-release on expiry</p>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <div style="width:10px;height:10px;border-radius:3px;background:#22d47a;border:2px solid #22d47a;"></div><span style="font-size:12px;color:var(--text2);">Available</span>
+            <div style="width:10px;height:10px;border-radius:3px;background:var(--red-bg);border:2px solid var(--red);margin-left:6px;"></div><span style="font-size:12px;color:var(--text2);">Occupied</span>
+            <div style="width:10px;height:10px;border-radius:3px;background:#7c6fff33;border:2px solid #7c6fff;margin-left:6px;"></div><span style="font-size:12px;color:var(--text2);">Selected</span>
+            <div style="width:10px;height:10px;border-radius:3px;background:#38bdf822;border:2px solid #38bdf8;margin-left:6px;"></div><span style="font-size:12px;color:var(--text2);">My Booking</span>
+          </div>
+        </div>
+
+        <!-- Seat overview always visible -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">🗺 Live Seat Overview — All 87 Seats</div>
+            <div style="display:flex;gap:12px;font-size:12px;">
+              <span style="color:#22d47a;" id="b-ov-avail">— available</span>
+              <span style="color:var(--red);" id="b-ov-occ">— occupied</span>
+            </div>
+          </div>
+          <div style="overflow-x:auto;padding-bottom:4px;">
+            <div style="min-width:500px;">
+              <div style="text-align:center;margin-bottom:10px;">
+                <div style="display:inline-block;background:var(--bg4);border:1.5px dashed var(--border2);border-radius:6px;padding:4px 32px;font-size:11px;color:var(--text3);">📖 Librarian Desk / Entry</div>
+              </div>
+              <div id="b-overview-grid" style="display:flex;flex-direction:column;gap:5px;align-items:center;"></div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:10px;text-align:center;">
+            💡 Hover over a booked seat for quick info &nbsp;·&nbsp; Click a booked seat to see full details
+          </div>
+        </div>
+
+        <!-- Seat detail popup -->
+        <div id="bseat-popup-overlay" onclick="bCloseSeatPopup(event)">
+          <div id="bseat-popup-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;">💺 Seat Details</div>
+              <button onclick="bCloseSeatPopup()" style="background:var(--bg3);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--text2);display:flex;align-items:center;justify-content:center;">×</button>
+            </div>
+            <div id="bseat-popup-content"></div>
+          </div>
+        </div>
+
+        <!-- Floating tooltip -->
+        <div class="bseat-tip" id="bseat-tip"></div>
+
+        <!-- Tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+          <button class="lib-tab active" id="btab-book" onclick="bTab('book',this)">🪑 Book a Seat</button>
+          <button class="lib-tab" id="btab-mybookings" onclick="bTab('mybookings',this)">📋 My Bookings</button>
+          <button class="lib-tab" id="btab-admin" onclick="bTab('admin',this)">🛠 Admin</button>
+        </div>
+
+        <!-- === BOOK PANEL === -->
+        <div id="bpanel-book">
+          <!-- Step 1 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">📅 Select Date</div>
+              <input type="date" id="b-date" style="width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box;" onchange="bLoadSlots()">
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">👤 Student</div>
+              <input type="text" id="b-student-search" placeholder="Search name, ID, phone or course..." autocomplete="off" style="width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;box-sizing:border-box;" oninput="bSearchStudent(this.value)" onkeydown="bSearchKeyNav(event)" onblur="setTimeout(function(){var r=document.getElementById('b-student-results');if(r){r.style.display='none';}},220)">
+              <div style="position:relative;"><div id="b-student-results" style="display:none;position:absolute;top:4px;left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:100;max-height:300px;overflow-y:auto;"></div></div>
+              <div id="b-sel-student" style="display:none;margin-top:6px;padding:7px 10px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:var(--radius-sm);font-size:13px;display:flex;align-items:center;justify-content:space-between;"></div>
+            </div>
+          </div>
+
+          <!-- Step 2: Multi-slot -->
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:18px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">
+                ⏰ Choose Time Slots
+                <span style="color:var(--accent2);font-size:10px;background:var(--accent-bg);padding:2px 8px;border-radius:10px;margin-left:6px;">Select multiple</span>
+              </div>
+              <button onclick="bClearSlots()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 8px;">Clear All</button>
+            </div>
+
+            <!-- Preset slot buttons -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:14px;" id="b-slots-grid">
+              <div style="color:var(--text3);font-size:13px;grid-column:1/-1;padding:8px 0;">Select a date first</div>
+            </div>
+
+            <!-- Manual time option -->
+            <div style="border-top:1px solid var(--border);padding-top:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <button id="b-manual-toggle" onclick="bToggleManual()" style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;">
+                  ✏️ Manual Time
+                </button>
+                <span style="font-size:11px;color:var(--text3);">Enter a custom time range not in the presets above</span>
+              </div>
+              <div id="b-manual-wrap" style="display:none;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:flex-end;">
+                  <div>
+                    <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">Start Time</label>
+                    <input type="time" id="b-manual-start" style="width:100%;padding:9px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+                  </div>
+                  <div>
+                    <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">End Time</label>
+                    <input type="time" id="b-manual-end" style="width:100%;padding:9px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+                  </div>
+                  <button onclick="bAddManualSlot()" class="btn btn-primary" style="white-space:nowrap;padding:9px 16px;">+ Add Slot</button>
+                </div>
+                <div id="b-manual-added" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+              </div>
+            </div>
+
+            <!-- Summary bar -->
+            <div id="b-slots-summary" style="margin-top:10px;display:none;padding:8px 12px;background:var(--accent-bg);border-radius:8px;font-size:12px;color:var(--accent2);font-weight:600;"></div>
+          </div>
+
+          <!-- Step 3: Seat Map -->
+          <div id="b-seatmap-wrap" style="display:none;">
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+                <div>
+                  <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">🗺 Seat Map — Basement</div>
+                  <div style="font-size:13px;color:var(--text2);" id="b-seatmap-label">—</div>
+                </div>
+                <div style="display:flex;gap:12px;font-size:13px;">
+                  <span style="color:#22d47a;" id="b-avail-count">— available</span>
+                  <span style="color:var(--red);" id="b-occ-count">— occupied</span>
+                </div>
+              </div>
+              <div style="overflow-x:auto;padding-bottom:6px;">
+                <div style="min-width:620px;">
+                  <div style="text-align:center;margin-bottom:14px;">
+                    <div style="display:inline-block;background:var(--bg4);border:1.5px dashed var(--border2);border-radius:8px;padding:6px 40px;font-size:12px;color:var(--text3);">📖 Librarian Desk / Entry</div>
+                  </div>
+                  <div id="b-seat-grid" style="display:flex;flex-direction:column;gap:7px;align-items:center;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Confirm panel -->
+            <div id="b-book-panel" style="display:none;background:var(--bg2);border:1px solid var(--accent);border-radius:var(--radius);padding:18px;margin-bottom:18px;">
+              <div style="font-size:14px;font-weight:700;margin-bottom:12px;">✅ Confirm Booking</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px;" id="b-confirm-info"></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:130px;">
+                  <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">Fee (₹)</label>
+                  <input type="number" id="b-fee-input" placeholder="e.g. 50" min="0" style="width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;box-sizing:border-box;">
+                </div>
+                <div style="flex:1;min-width:130px;">
+                  <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">Payment</label>
+                  <select id="b-pay-mode" style="width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+                    <option>Cash</option><option>UPI</option><option>Online Transfer</option><option>Free / Included</option>
+                  </select>
+                </div>
+                <div style="display:flex;align-items:flex-end;gap:8px;">
+                  <button class="btn btn-primary" onclick="bConfirmBooking()">Confirm &amp; Book</button>
+                  <button class="btn btn-ghost" onclick="bClearSel()">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- === MY BOOKINGS PANEL === -->
+        <div id="bpanel-mybookings" style="display:none;">
+          <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+            <input type="text" id="b-mybk-search" placeholder="Search by name, phone, seat..." style="flex:1;max-width:300px;padding:9px 13px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;" oninput="bRenderMyBookings()">
+            <input type="date" id="b-mybk-date" style="padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;" onchange="bRenderMyBookings()">
+          </div>
+          <div id="b-mybk-list"></div>
+        </div>
+
+        <!-- === ADMIN PANEL === -->
+        <div id="bpanel-admin" style="display:none;">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;" id="b-admin-stats"></div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+              <div style="font-size:14px;font-weight:700;">All Bookings</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <input type="date" id="b-admin-df" style="padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;" onchange="bRenderAdminTable()">
+                <button class="btn btn-ghost" style="font-size:12px;color:var(--red);" onclick="bClearExpired()">🗑 Clear Expired</button>
+                <button class="btn btn-primary" style="font-size:12px;" onclick="bExportCSV()">⬇ Export CSV</button>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="b-tbl">
+                <thead><tr><th>Seat</th><th>Student</th><th>Phone</th><th>Date</th><th>Slots</th><th>Fee</th><th>Mode</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="b-admin-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+<!-- 2ND FLOOR LIBRARY -->
+      <div class="page" id="page-floor2">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;">
+          <div style="position:relative;width:120px;height:120px;margin-bottom:28px;">
+            <div style="position:absolute;inset:0;border-radius:50%;background:var(--amber-bg);border:3px solid var(--amber);animation:wip-pulse 2s ease-in-out infinite;"></div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:52px;">🚧</div>
+          </div>
+          <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.02em;margin-bottom:12px;">Work in Progress</h2>
+          <p style="color:var(--text3);font-size:15px;max-width:380px;margin-bottom:24px;line-height:1.6;">The 2nd Floor Library is currently under renovation. The seat booking system will be available here once construction is complete.</p>
+          <div style="background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:12px;padding:14px 28px;display:inline-flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">🔨</span>
+            <span style="color:var(--amber);font-weight:600;font-size:14px;">Coming Soon — Check back later</span>
+          </div>
+        </div>
+        <style>
+          @keyframes wip-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.1);opacity:0.7} }
+        </style>
+      </div>
+
+
+  <!-- PAYMENT MODAL -->
+  <div class="modal-overlay" id="payment-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Record Payment</div>
+        <button class="close-btn" onclick="closeModal('payment-modal')">×</button>
+      </div>
+      <div id="payment-student-info"
+        style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--radius-sm);font-size:13px">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Payment Amount (₹)</label>
+          <input type="number" id="pay-amount" min="1" step="1" placeholder="Enter amount" oninput="sanitizeNumberInput(this, 1)">
+        </div>
+        <div class="form-group">
+          <label>Payment Date</label>
+          <input type="date" id="pay-date">
+        </div>
+        <div class="form-group">
+          <label>From Date</label>
+          <input type="date" id="pay-from-date" onchange="calcNextDueDate()">
+        </div>
+        <div class="form-group">
+          <label>Months</label>
+          <input type="number" id="pay-months" min="1" step="1" placeholder="e.g. 1" oninput="sanitizeNumberInput(this, 1, true); calcNextDueDate()">
+        </div>
+        <div class="form-group">
+          <label>Subscription Shift</label>
+          <select id="pay-shift" onchange="calcNextDueDate()">
+            <option value="Day">Day</option>
+            <option value="Night">Night</option>
+            <option value="Both">Both</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Next Due Date</label>
+          <input type="date" id="pay-next-due-date">
+        </div>
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select id="pay-method">
+            <option>Cash</option>
+            <option>Online Transfer</option>
+            <option>Cheque</option>
+            <option>UPI</option>
+            <option>DD</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="pay-notes" placeholder="Optional note">
+        </div>
+      </div>
+      <!-- SEAT BOOKING INSIDE PAYMENT -->
+      <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;">
+            <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4v3zm15-8h3v3h-3v-3zM2 10h3v3H2v-3zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v8z"/></svg>
+            Library Seat Booking
+            <span style="font-size:10px;font-weight:400;color:var(--text3);background:var(--bg4);padding:2px 8px;border-radius:10px;">From Date &#8594; Next Due Date</span>
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);">
+            <input type="checkbox" id="pay-seat-enable" onchange="payToggleSeat()" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer;">
+            Enable
+          </label>
+        </div>
+        <div id="pay-seat-body" style="display:none;">
+          <div id="pay-existing-notice" style="display:none;padding:8px 12px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;font-size:12px;color:var(--accent2);margin-bottom:10px;"></div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Time Slot <span style="font-size:10px;font-weight:400;background:var(--accent-bg);color:var(--accent2);padding:2px 7px;border-radius:10px;margin-left:4px;">Multiple OK · Full Day exclusive</span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:10px;" id="pay-slot-grid">
+            <div style="color:var(--text3);font-size:12px;grid-column:1/-1;padding:4px 0;">Set From Date &amp; Next Due Date above first</div>
+          </div>
+          <div id="pay-seatmap-wrap" style="display:none;border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--bg3);margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+              <div style="font-size:12px;font-weight:700;color:var(--text2);" id="pay-seatmap-label">—</div>
+              <div style="font-size:12px;display:flex;gap:10px;">
+                <span style="color:#22d47a;" id="pay-avail-count"></span>
+                <span style="color:var(--red);" id="pay-occ-count"></span>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;font-size:11px;">
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:2px;background:#22d47a22;border:2px solid #22d47a;display:inline-block;"></span>Available</span>
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:2px;background:var(--red-bg);border:2px solid var(--red);display:inline-block;"></span>Occupied</span>
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:2px;background:#7c6fff33;border:2px solid #7c6fff;display:inline-block;"></span>Selected</span>
+            </div>
+            <div style="text-align:center;margin-bottom:8px;"><span style="display:inline-block;background:var(--bg4);border:1px dashed var(--border2);border-radius:6px;padding:3px 20px;font-size:11px;color:var(--text3);">Librarian Desk</span></div>
+            <div style="overflow-x:auto;"><div style="min-width:560px;">
+              <div id="pay-seat-grid" style="display:flex;flex-direction:column;gap:5px;align-items:center;"></div>
+            </div></div>
+            <div id="pay-sel-info" style="display:none;margin-top:10px;padding:9px 14px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;font-size:13px;font-weight:600;color:var(--accent2);text-align:center;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeModal('payment-modal')">Cancel</button>
+        <button class="btn btn-primary" id="record-payment-btn" onclick="if(this.disabled)return; this.disabled=true; var ok=savePayment(); if(ok){ this.textContent='\u2713 Payment Recorded'; } else { this.disabled=false; }">&#128190; Record Payment &amp; Book Seat</button>
+      </div>
+      <div id="receipt-area"></div>
+    </div>
+  </div>
+
+  <!-- STUDENT DETAILS MODAL -->
+  <div class="modal-overlay" id="student-details-modal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">Student Details</div>
+        <button class="close-btn" onclick="closeModal('student-details-modal')">×</button>
+      </div>
+      <div id="student-details-content" style="padding: 10px 0; font-size: 14px; line-height: 1.6;"></div>
+    </div>
+  </div>
+
+  <!-- CONFIRM MODAL -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal" style="max-width: 400px; padding: 24px;">
+      <h3 id="confirm-title" style="margin-top:0; margin-bottom: 12px; font-size:18px;">Confirm Action</h3>
+      <p id="confirm-message" style="margin-bottom:24px; color:var(--text2); font-size:14px;">Are you sure you want to proceed?</p>
+      <div class="form-actions" style="margin-top:0;">
+        <button class="btn btn-ghost" onclick="closeConfirm(false)">Cancel</button>
+        <button class="btn btn-primary" id="confirm-btn" onclick="closeConfirm(true)">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <div class="toast-dot" id="toast-dot"></div>
+    <span id="toast-msg"></span>
+  </div>
+
+  <script>
+    // Data layer: loads all data from the server (Postgres) into localStorage before the app boots,
+    // then mirrors every localStorage write back to the server, in order. app.js itself is unchanged.
+    // Student photos (data:image) are uploaded first and replaced by a hosted URL.
+    (function () {
+      var origSet = Storage.prototype.setItem;
+      var origRemove = Storage.prototype.removeItem;
+      var PREFIXES = ['edu_', 'blib_', 'edutrack-'];
+      var queue = Promise.resolve();
+      var pending = 0;
+      var uploadCache = {};
+      var versions = {};   // change counters from the server; sent back with each save so stale copies are refused
+
+      function toLogin() { window.location.href = '/login'; }
+      function managed(key) { return PREFIXES.some(function (p) { return key.indexOf(p) === 0; }); }
+      function api(path, opts) {
+        opts = opts || {};
+        opts.credentials = 'same-origin';
+        opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+        return fetch(path, opts);
+      }
+      function warn(msg) {
+        if (typeof window.showToast === 'function') window.showToast(msg, 'red'); else console.error(msg);
+      }
+
+      function uploadImage(dataUrl) {
+        if (uploadCache[dataUrl]) return uploadCache[dataUrl];
+        uploadCache[dataUrl] = api('/api/upload/image', { method: 'POST', body: JSON.stringify({ image: dataUrl }) })
+          .then(function (res) { return res.json().then(function (j) { return res.ok && j.url ? j.url : dataUrl; }); })
+          .catch(function () { return dataUrl; });
+        return uploadCache[dataUrl];
+      }
+
+      function push(key, value) {
+        var step = Promise.resolve(value);
+        if (key.indexOf('edu_photo_') === 0 && typeof value === 'string' && value.indexOf('data:image') === 0) {
+          step = uploadImage(value).then(function (url) {
+            if (url !== value) origSet.call(localStorage, key, url);
+            return url;
+          });
+        }
+        return step.then(function (v) {
+          var body = { value: v };
+          if (key in versions) body.base = versions[key];
+          return api('/api/state/' + encodeURIComponent(key), { method: 'PUT', body: JSON.stringify(body) });
+        }).then(function (res) {
+          if (res.status === 401) { alert('Your session has expired. Please sign in again. Your last change was not saved.'); return toLogin(); }
+          if (res.status === 409) {
+            return res.json().then(function (j) {
+              alert((j.message || 'This change conflicts with another user.') + '\n\nThe page will reload with the latest data.');
+              window.location.reload();
+            });
+          }
+          if (!res.ok) throw new Error('save-' + res.status);
+          return res.json().then(function (j) {
+            if (j && typeof j.version === 'number') versions[key] = j.version;
+            // The real PIN stays on the server; the browser only keeps a placeholder.
+            if (key === 'edu_owner_delete_pin') origSet.call(localStorage, key, 'set');
+          });
+        });
+      }
+
+      function enqueue(task) {
+        pending++;
+        queue = queue.then(task).catch(function (err) {
+          console.error('Save failed', err);
+          warn('Could not save to the server. Check your connection, then reload.');
+        }).then(function () { pending--; });
+      }
+
+      window.addEventListener('beforeunload', function (e) {
+        if (pending > 0) { e.preventDefault(); e.returnValue = ''; }
+      });
+
+      function enableSync() {
+        Storage.prototype.setItem = function (key, value) {
+          origSet.call(this, key, value);
+          if (this !== localStorage || !managed(key)) return;
+          enqueue(function () { return push(key, value); });
+        };
+        Storage.prototype.removeItem = function (key) {
+          origRemove.call(this, key);
+          if (this !== localStorage || !managed(key)) return;
+          enqueue(function () { return api('/api/state/' + encodeURIComponent(key), { method: 'DELETE' }).then(function (r) { if (!r.ok) throw new Error('delete-' + r.status); }); });
+        };
+      }
+
+      function addSignOut() {
+        var footer = document.querySelector('.sidebar-footer');
+        if (!footer) return;
+        var a = document.createElement('a');
+        a.href = '/api/auth/logout';
+        a.textContent = 'Sign out';
+        a.style.cssText = 'display:block;margin:10px 4px 0;text-align:center;font-size:12px;color:var(--text3,#7b8296);text-decoration:none;';
+        footer.appendChild(a);
+      }
+
+      // Real addresses: the address bar follows the section that is showing, and links/back button work.
+      function setupRouting() {
+        var nav = window.__NAV__ || [], byLegacy = {}, byHref = {};
+        nav.forEach(function (n) { byLegacy[n.legacy] = n; byHref[n.href] = n; });
+        var original = window.showPage;
+        if (typeof original !== 'function') return;
+        function navEl(id) { return document.querySelector('.nav-item[onclick*="showPage(\'' + id + '\'"]'); }
+        window.showPage = function (id, el) {
+          original.apply(this, arguments);
+          var n = byLegacy[id];
+          if (!n) return;
+          if (location.pathname !== n.href) history.pushState({ legacy: id }, '', n.href);
+          document.title = n.label + ' \u2014 Swami Abhyasika';
+        };
+        window.addEventListener('popstate', function () {
+          var n = byHref[location.pathname];
+          if (n) original(n.legacy, navEl(n.legacy)); else window.location.reload();
+        });
+        var first = byHref[location.pathname];
+        if (first && first.legacy !== 'dashboard') {
+          if (first.legacy === 'admission-form' && typeof window.newAdmission === 'function') window.newAdmission();
+          else original(first.legacy, navEl(first.legacy));
+        }
+      }
+
+      function startApp() {
+        var s = document.createElement('script');
+        s.src = '/app.js';
+        s.async = false;
+        // app.js initialises itself in a DOMContentLoaded handler. That event has normally already fired by the
+        // time data has loaded, so run such handlers right away (only while app.js itself is being evaluated).
+        var realAdd = document.addEventListener;
+        document.addEventListener = function (type, fn, opts) {
+          if (type === 'DOMContentLoaded' && document.readyState !== 'loading') {
+            setTimeout(function () { try { fn.call(document, new Event('DOMContentLoaded')); } catch (e) { console.error(e); } }, 0);
+            return;
+          }
+          return realAdd.call(document, type, fn, opts);
+        };
+        s.onload = function () { document.addEventListener = realAdd; setTimeout(setupRouting, 50); };
+        s.onerror = function () { document.addEventListener = realAdd; showError('The application could not load. Please refresh the page.'); };
+        document.body.appendChild(s);
+        addSignOut();
+        try {
+          var hour = new Date().toISOString().slice(0, 13);
+          if (sessionStorage.getItem('swami-catchup') !== hour) {
+            sessionStorage.setItem('swami-catchup', hour);
+            api('/api/backup/catch-up', { method: 'POST' }).catch(function () {});
+          }
+        } catch (e) {}
+      }
+
+      function showError(msg) {
+        var d = document.createElement('div');
+        d.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;background:#080a10;color:#f5f6fa;font-family:system-ui,sans-serif;text-align:center;padding:24px;';
+        d.innerHTML = '<div style="font-size:18px;font-weight:700">' + msg + '</div><button style="padding:10px 22px;border:0;border-radius:8px;background:#23c483;color:#06130d;font-weight:700;cursor:pointer" onclick="location.reload()">Try again</button>';
+        document.body.appendChild(d);
+      }
+
+      api('/api/state')
+        .then(function (res) {
+          if (res.status === 401) { toLogin(); throw new Error('auth'); }
+          if (!res.ok) throw new Error('api-' + res.status);
+          return res.json();
+        })
+        .then(function (payload) {
+          var data = payload.data || {};
+          versions = payload.versions || {};
+          // Drop stale copies of server-managed keys left over from earlier sessions on this device.
+          Object.keys(localStorage).forEach(function (k) { if (managed(k) && !(k in data)) origRemove.call(localStorage, k); });
+          Object.keys(data).forEach(function (k) { origSet.call(localStorage, k, data[k]); });
+          enableSync();
+          startApp();
+        })
+        .catch(function (err) {
+          if (err && err.message === 'auth') return;
+          console.error('Failed to load data', err);
+          showError('Cannot reach the server, so your data was not loaded.');
+        });
+    })();
+  </script>
+  <!-- PHOTO LIGHTBOX -->
+  <div id="photo-lightbox" onclick="closePhotoLightbox()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(8px);cursor:zoom-out;">
+    <img id="lightbox-img" src="" style="max-width:88vw;max-height:80vh;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.8);object-fit:contain;animation:lightboxIn 0.25s cubic-bezier(.34,1.56,.64,1);" onclick="event.stopPropagation()">
+    <div id="lightbox-name" style="color:white;font-size:18px;font-weight:700;letter-spacing:-0.01em;opacity:0.9;"></div>
+    <div style="color:rgba(255,255,255,0.4);font-size:12px;">Click anywhere to close</div>
+  </div>
+
+  <style>
+    @keyframes lightboxIn {
+      from { opacity:0; transform:scale(0.82); }
+      to   { opacity:1; transform:scale(1); }
+    }
+  
+/* ===== FULLSCREEN IMAGE POPUP ===== */
+.image-popup-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.95);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999999;
+}
+
+.image-popup-overlay.active{
+  display:flex;
+}
+
+.image-popup-overlay img{
+  max-width:95%;
+  max-height:95%;
+  border-radius:12px;
+}
+
+.image-popup-close{
+  position:absolute;
+  top:20px;
+  right:20px;
+  width:45px;
+  height:45px;
+  border:none;
+  border-radius:50%;
+  font-size:28px;
+  cursor:pointer;
+  background:white;
+  color:black;
+}
+
+</style>
+
+  <script>
+    function openPhotoLightbox(src, name) {
+      const lb = document.getElementById('photo-lightbox');
+      document.getElementById('lightbox-img').src = src;
+      document.getElementById('lightbox-name').textContent = name;
+      lb.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function closePhotoLightbox() {
+      document.getElementById('photo-lightbox').style.display = 'none';
+      document.getElementById('lightbox-img').src = '';
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePhotoLightbox(); });
+  </script>
+
+  <!-- PHOTO LIGHTBOX -->
+  <div id="photo-lightbox" onclick="closePhotoLightbox()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(8px);cursor:zoom-out;">
+    <img id="lightbox-img" src="" style="max-width:88vw;max-height:80vh;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.8);object-fit:contain;animation:lightboxIn 0.25s cubic-bezier(.34,1.56,.64,1);" onclick="event.stopPropagation()">
+    <div id="lightbox-name" style="color:white;font-size:18px;font-weight:700;letter-spacing:-0.01em;opacity:0.9;"></div>
+    <div style="color:rgba(255,255,255,0.4);font-size:12px;">Click anywhere to close</div>
+  </div>
+
+  <style>
+    @keyframes lightboxIn {
+      from { opacity:0; transform:scale(0.82); }
+      to   { opacity:1; transform:scale(1); }
+    }
+  
+/* ===== FULLSCREEN IMAGE POPUP ===== */
+.image-popup-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.95);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999999;
+}
+
+.image-popup-overlay.active{
+  display:flex;
+}
+
+.image-popup-overlay img{
+  max-width:95%;
+  max-height:95%;
+  border-radius:12px;
+}
+
+.image-popup-close{
+  position:absolute;
+  top:20px;
+  right:20px;
+  width:45px;
+  height:45px;
+  border:none;
+  border-radius:50%;
+  font-size:28px;
+  cursor:pointer;
+  background:white;
+  color:black;
+}
+
+</style>
+
+
+
+
+<div class="image-popup-overlay" id="imagePopupOverlay">
+  <button class="image-popup-close" onclick="closeImagePopup()">×</button>
+  <img id="popupImage" src="">
+</div>
+
+
+<script>
+function openImagePopup(src){
+  document.getElementById('popupImage').src = src;
+  document.getElementById('imagePopupOverlay').classList.add('active');
+}
+
+function closeImagePopup(){
+  document.getElementById('imagePopupOverlay').classList.remove('active');
+}
+
+document.addEventListener('click', function(e){
+
+  const img = e.target.closest('img');
+
+  if(
+    img &&
+    img.src &&
+    (
+      img.src.startsWith('data:image') ||
+      img.src.includes('.jpg') ||
+      img.src.includes('.png') ||
+      img.src.includes('.jpeg') ||
+      img.classList.contains('avatar') === false
+    )
+  ){
+    openImagePopup(img.src);
+  }
+
+  if(e.target.id === 'imagePopupOverlay'){
+    closeImagePopup();
+  }
+
+});
+</script>
+
+
+  <!-- BULK REMINDER MODAL -->
+  <div class="modal-overlay" id="bulk-reminder-modal" style="z-index:1000;">
+    <div class="modal" style="max-width:560px;max-height:88vh;display:flex;flex-direction:column;">
+      <div class="modal-header" style="flex-shrink:0;">
+        <div class="modal-title">💬 Send WhatsApp Reminders</div>
+        <button class="close-btn" onclick="closeBulkModal()">×</button>
+      </div>
+
+      <!-- Progress bar -->
+      <div id="bulk-progress-wrap" style="display:none;flex-shrink:0;padding:0 0 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:600;color:var(--text2);" id="bulk-progress-label">Sending 0 / 0</span>
+          <span style="font-size:11px;color:var(--text3);" id="bulk-progress-eta"></span>
+        </div>
+        <div style="background:var(--bg4);border-radius:20px;height:6px;overflow:hidden;">
+          <div id="bulk-progress-bar" style="height:100%;background:var(--accent);border-radius:20px;width:0%;transition:width .4s;"></div>
+        </div>
+      </div>
+
+      <!-- Student list -->
+      <div id="bulk-student-list" style="flex:1;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:8px;"></div>
+
+      <!-- Footer -->
+      <div style="flex-shrink:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:1;font-size:12px;color:var(--text3);" id="bulk-footer-note">
+          Each message opens WhatsApp one by one with a short pause between each.
+        </div>
+        <button class="btn btn-ghost" onclick="closeBulkModal()" id="bulk-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" onclick="startBulkSend()" id="bulk-send-btn" style="background:#25D366;border-color:#25D366;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:5px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.557 4.118 1.528 5.849L.057 23.974l6.306-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.002-1.368l-.359-.213-3.722.976.994-3.634-.234-.372A9.818 9.818 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>
+          Send All Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+<!-- ===== PWA: MANIFEST + SERVICE WORKER + INSTALL PROMPT ===== -->
+<style>
+  #pwa-install-bar {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+    background: linear-gradient(135deg, #7c6fff 0%, #a59bff 100%);
+    color: white; padding: 14px 20px;
+    align-items: center; justify-content: space-between; gap: 12px;
+    box-shadow: 0 -4px 24px rgba(124,111,255,0.4);
+    font-family: 'DM Sans', sans-serif;
+  }
+  #pwa-install-bar.show { display: flex; animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  #pwa-install-bar .pwa-text { font-size: 13px; font-weight: 500; flex: 1; }
+  #pwa-install-bar .pwa-text strong { display: block; font-size: 15px; font-weight: 700; }
+  #pwa-install-btn {
+    background: white; color: #7c6fff; border: none; border-radius: 20px;
+    padding: 9px 20px; font-size: 13px; font-weight: 700; cursor: pointer;
+    white-space: nowrap; font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  #pwa-dismiss-btn {
+    background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%;
+    width: 28px; height: 28px; font-size: 16px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+</style>
+
+<!-- Install Banner -->
+<div id="pwa-install-bar">
+  <div class="pwa-text">
+    <strong>📲 Install Swami Abhyasika</strong>
+    Add to your home screen for quick access — works offline too!
+  </div>
+  <button id="pwa-install-btn">Install App</button>
+  <button id="pwa-dismiss-btn">×</button>
+</div>
+
+<script>
+  // ── 1. Inject Web App Manifest dynamically ──
+  (function() {
+    const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <rect width="512" height="512" rx="80" fill="#080a10"/>
+      <rect width="512" height="512" rx="80" fill="url(#g)"/>
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#7c6fff"/>
+          <stop offset="100%" stop-color="#a59bff"/>
+        </linearGradient>
+      </defs>
+      <text x="256" y="340" font-size="280" text-anchor="middle" font-family="serif" fill="white">स</text>
+    </svg>`;
+
+    const svgBlob = new Blob([iconSvg], {type: 'image/svg+xml'});
+    const iconUrl = URL.createObjectURL(svgBlob);
+
+    const manifest = {
+      name: 'Swami Abhyasika SMS',
+      short_name: 'Swami SMS',
+      description: 'Student Management System for Swami Abhyasika',
+      start_url: '.',
+      display: 'standalone',
+      background_color: '#080a10',
+      theme_color: '#7c6fff',
+      orientation: 'portrait-primary',
+      icons: [
+        { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+        { src: iconUrl, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+      ],
+      categories: ['education', 'productivity'],
+      lang: 'en-IN'
+    };
+
+    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    document.getElementById('pwa-manifest').href = url;
+  })();
+
+  // ── 2. Register Service Worker (inline via blob) ──
+  (function() {
+    const swCode = `
+const CACHE = 'swami-sms-v1';
+const ASSETS = ['/'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {})
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    fetch(e.request).catch(() => caches.match(e.request))
+  );
+});
+`;
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl  = URL.createObjectURL(swBlob);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register(swUrl, { scope: '/' })
+        .catch(function() {
+          // SW scope may differ when opened as local file — that's OK
+        });
+    }
+  })();
+
+  // ── 3. Install Prompt ──
+  let _deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    _deferredPrompt = e;
+    // Show banner after 2 seconds
+    setTimeout(function() {
+      document.getElementById('pwa-install-bar').classList.add('show');
+    }, 2000);
+  });
+
+  document.getElementById('pwa-install-btn').addEventListener('click', function() {
+    if (!_deferredPrompt) return;
+    _deferredPrompt.prompt();
+    _deferredPrompt.userChoice.then(function(result) {
+      if (result.outcome === 'accepted') {
+        showToast('App installed! Find it on your home screen 🎉', 'green');
+      }
+      _deferredPrompt = null;
+      document.getElementById('pwa-install-bar').classList.remove('show');
+    });
+  });
+
+  document.getElementById('pwa-dismiss-btn').addEventListener('click', function() {
+    document.getElementById('pwa-install-bar').classList.remove('show');
+    localStorage.setItem('pwa-dismissed', '1');
+  });
+
+  window.addEventListener('appinstalled', function() {
+    document.getElementById('pwa-install-bar').classList.remove('show');
+    showToast('Swami Abhyasika installed successfully! 🎉', 'green');
+  });
+</script>
+
+
+<!-- COMMAND PALETTE -->
+<style>
+  #cmd-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:99998;display:none;align-items:flex-start;justify-content:center;padding-top:10vh; }
+  #cmd-overlay.open { display:flex; }
+  #cmd-box { background:var(--bg2);border:1px solid var(--border2);border-radius:16px;width:90%;max-width:580px;box-shadow:0 24px 80px rgba(0,0,0,0.5);overflow:hidden;display:flex;flex-direction:column;max-height:70vh; }
+  #cmd-input-wrap { display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border); }
+  #cmd-input { flex:1;background:transparent;border:none;outline:none;font-size:16px;color:var(--text);font-family:'DM Sans',sans-serif; }
+  #cmd-input::placeholder { color:var(--text3); }
+  #cmd-results { flex:1;overflow-y:auto; }
+  .cmd-section-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:10px 18px 6px; }
+  .cmd-item { display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;transition:background .1s; }
+  .cmd-item:hover,.cmd-item.focused { background:var(--bg4); }
+  .cmd-item-icon { width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;font-weight:700; }
+  .cmd-item-main { flex:1;min-width:0; }
+  .cmd-item-title { font-size:13px;font-weight:600;color:var(--text); }
+  .cmd-item-sub { font-size:11px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .cmd-item-badge { font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap; }
+  .cmd-empty { text-align:center;padding:32px 18px;color:var(--text3);font-size:13px; }
+  #cmd-footer { padding:8px 18px;border-top:1px solid var(--border);display:flex;gap:16px;font-size:11px;color:var(--text3); }
+  #cmd-footer kbd { background:var(--bg4);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;font-family:monospace;font-size:10px;color:var(--text2);margin-right:3px; }
+</style>
+
+<div id="cmd-overlay" onclick="if(event.target===this)closeCommandPalette()">
+  <div id="cmd-box">
+    <div id="cmd-input-wrap">
+      <svg width="18" height="18" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="cmd-input" placeholder="Search students, actions..." autocomplete="off" oninput="cmdSearch(this.value)" onkeydown="cmdKeyNav(event)">
+      <button onclick="closeCommandPalette()" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:2px 8px;color:var(--text3);cursor:pointer;font-size:11px;">ESC</button>
+    </div>
+    <div id="cmd-results"></div>
+    <div id="cmd-footer">
+      <span><kbd>↑↓</kbd> Navigate</span>
+      <span><kbd>↵</kbd> Open</span>
+      <span><kbd>ESC</kbd> Close</span>
+      <span><kbd>Ctrl K</kbd> Toggle</span>
+    </div>
+  </div>
+</div>
+
+
+<script id="swami-ux-behavior">
+(function(){
+  const sidebar=document.getElementById('main-sidebar');
+  const toggle=document.getElementById('mobile-menu-btn');
+  const backdrop=document.getElementById('sidebar-backdrop');
+  if(!sidebar||!toggle||!backdrop)return;
+  function setMenu(open){
+    sidebar.classList.toggle('mobile-open',open);
+    backdrop.classList.toggle('open',open);
+    document.body.classList.toggle('sidebar-open',open);
+    toggle.setAttribute('aria-expanded',String(open));
+    toggle.setAttribute('aria-label',open?'Close navigation menu':'Open navigation menu');
+  }
+  toggle.addEventListener('click',()=>setMenu(!sidebar.classList.contains('mobile-open')));
+  backdrop.addEventListener('click',()=>setMenu(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('mobile-open')){setMenu(false);toggle.focus();}});
+  sidebar.querySelectorAll('.nav-item').forEach(item=>{
+    item.setAttribute('role','button');
+    item.setAttribute('tabindex','0');
+    item.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();item.click();}});
+    item.addEventListener('click',()=>{if(window.innerWidth<=900)setMenu(false);});
+  });
+  window.addEventListener('resize',()=>{if(window.innerWidth>900)setMenu(false);});
+  const toast=document.getElementById('toast');
+  if(toast){toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.setAttribute('aria-atomic','true');}
+  document.querySelectorAll('.modal-overlay').forEach(m=>{m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');});
+})();
+</script>
+
+</body>
+
+</html>

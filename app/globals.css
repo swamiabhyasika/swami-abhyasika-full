@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/* ── Theme variables, copied from the original app so colours stay identical ── */
+:root {
+      color-scheme: dark;
+      --bg:      #080a10;
+      --bg2:     #0f1118;
+      --bg3:     #161922;
+      --bg4:     #1e222e;
+      --bg5:     #252a38;
+      --border:  rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.11);
+      --text:    #eceef6;
+      --text2:   #8892aa;
+      --text3:   #4e5670;
+      --accent:  #7c6fff;
+      --accent2: #a59bff;
+      --accent-bg: rgba(124,111,255,0.12);
+      --accent-glow: rgba(124,111,255,0.22);
+      --green:   #22d47a;
+      --green-bg:rgba(34,212,122,0.10);
+      --amber:   #f59e0b;
+      --amber-bg:rgba(245,158,11,0.10);
+      --red:     #f05252;
+      --red-bg:  rgba(240,82,82,0.10);
+      --blue:    #38bdf8;
+      --blue-bg: rgba(56,189,248,0.10);
+      --sidebar-w: 248px;
+      --radius:    14px;
+      --radius-sm: 9px;
+      --radius-xs: 6px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-md: 0 6px 24px rgba(0,0,0,0.4);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.5);
+    }
+
+[data-theme="light"] {
+      color-scheme: light;
+      --bg:      #f2eee4;
+      --bg2:     #e8e2d4;
+      --bg3:     #ddd5c2;
+      --bg4:     #d0c8b0;
+      --bg5:     #c4bb9e;
+      --border:  rgba(100,80,40,0.13);
+      --border2: rgba(100,80,40,0.22);
+      --text:    #2a1f0e;
+      --text2:   #6b5c40;
+      --text3:   #8b7a58;
+      --accent:  #6c52c8;
+      --accent2: #8064d4;
+      --accent-bg: rgba(108,82,200,0.10);
+      --accent-glow: rgba(108,82,200,0.18);
+      --green:   #2d7a45;
+      --green-bg:rgba(45,122,69,0.10);
+      --amber:   #b45309;
+      --amber-bg:rgba(180,83,9,0.10);
+      --red:     #b91c1c;
+      --red-bg:  rgba(185,28,28,0.09);
+      --blue:    #0369a1;
+      --blue-bg: rgba(3,105,161,0.09);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-md: 0 6px 20px rgba(0,0,0,0.12);
+      --shadow-lg: 0 16px 40px rgba(0,0,0,0.16);
+    }
+
+/* ── Map the original variables onto the names shadcn/ui components use ── */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--bg2);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--bg3);
+  --color-popover-foreground: var(--text);
+  --color-muted: var(--bg3);
+  --color-muted-foreground: var(--text2);
+  --color-faint: var(--text3);
+  --color-border: var(--border2);
+  --color-input: var(--bg3);
+  --color-ring: var(--accent);
+  --color-primary: var(--accent);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--bg4);
+  --color-secondary-foreground: var(--text);
+  --color-accent: var(--accent-bg);
+  --color-accent-foreground: var(--accent2);
+  --color-destructive: var(--red);
+  --color-success: var(--green);
+  --color-warning: var(--amber);
+  --color-info: var(--blue);
+  --radius-lg: var(--radius);
+  --radius-md: var(--radius-sm);
+  --radius-sm: var(--radius-xs);
+  --font-sans: 'DM Sans', sans-serif;
+  --font-heading: 'Syne', sans-serif;
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  html, body { background: var(--bg); color: var(--text); }
+  body { font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.5; min-height: 100vh; }
+  h1, h2, h3, h4 { font-family: 'Syne', sans-serif; letter-spacing: -0.02em; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+}
